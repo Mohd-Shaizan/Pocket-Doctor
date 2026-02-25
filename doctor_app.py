@@ -88,7 +88,7 @@ with col_output:
 
                     # Gemini 2.0 Flash is optimized for fast multimodal reasoning
                     response = client.models.generate_content(
-                        model="gemini-3.0-flash-preview",
+                        model="gemini-2.5-flash",
                         contents=[prompt, image]
                     )
 
