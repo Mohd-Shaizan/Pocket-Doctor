@@ -92,6 +92,7 @@ st.markdown("""
     .about-box {
         text-align: center;
         max-width: 950px;
+        font-size:15px;
         margin: 0 auto 50px auto;
         padding: 20px;
         border-radius: 15px;
