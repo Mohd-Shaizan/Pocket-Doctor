@@ -2,58 +2,82 @@ import streamlit as st
 from PIL import Image
 from google import genai
 from google.api_core import exceptions
+from streamlit_mic_recorder import mic_recorder
+from gtts import gTTS
+import io
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="PocketDoc AI", page_icon="🩺", layout="wide")
 
-# --- HIGH-VISIBILITY CLINICAL CSS ---
+# --- LANGCHAIN-INSPIRED DARK UI CSS ---
 st.markdown("""
     <style>
-    /* Force the background color on the main app area */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap');
+
     .stApp {
-        background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%) !important;
+        background-color: #050505 !important;
+        color: #e2e8f0 !important;
     }
 
-    /* Professional Card Styling with forced white background */
-    [data-testid="stVerticalBlock"] > div > div > div[data-testid="column"] {
-        background-color: white !important;
-        padding: 2rem !important;
-        border-radius: 20px !important;
-        border: 1px solid #d1d5db !important;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-    }
-
-    /* Custom Header */
-    .main-header {
+    /* Hero Section Glow */
+    .hero-container {
         text-align: center;
-        color: #1e3a8a;
-        font-size: 3rem;
+        padding: 100px 20px;
+        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, rgba(5, 5, 5, 1) 70%);
+    }
+
+    .hero-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 4.5rem !important;
         font-weight: 800;
-        margin-bottom: 0;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-    }
-    
-    .sub-header {
-        text-align: center;
-        color: #475569;
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
+        background: linear-gradient(to right, #ffffff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
     }
 
-    /* Result Card */
+    .hero-tagline {
+        font-size: 1.4rem;
+        color: #94a3b8;
+        max-width: 800px;
+        margin: 0 auto 30px;
+    }
+
+    /* Section Cards (Bento Style) */
+    .feature-section {
+        background: rgba(30, 41, 59, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(10px);
+        padding: 40px !important;
+        border-radius: 24px !important;
+        margin: 20px auto !important;
+        max-width: 1000px;
+    }
+
+    /* Terminal/Mono styling for output */
     .status-card {
-        background-color: #ffffff !important;
-        color: #1e293b !important;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border-left: 8px solid #3b82f6;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        background-color: #0f172a !important;
+        color: #38bdf8 !important;
+        font-family: 'JetBrains Mono', monospace;
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid #1e293b;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
     }
 
-    /* Adjusting the Camera Input spacing */
-    div[data-testid="stCameraInput"] {
-        padding: 1rem 0;
+    /* Buttons */
+    .stButton>button {
+        background: #3b82f6 !important;
+        color: white !important;
+        border-radius: 50px !important;
+        padding: 12px 30px !important;
+        border: none !important;
+        font-weight: 600 !important;
     }
+
+    /* Hide Streamlit components that break the landing page feel */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -65,73 +89,108 @@ except Exception:
     st.error("Missing API Key in Secrets.")
     st.stop()
 
-# --- HEADER ---
-st.markdown("<h1 class='main-header'>🩺 PocketDoc AI</h1>", unsafe_allow_html=True)
-st.markdown("<p class='sub-header'>Research Prototype: Multimodal Clinical Triage</p>", unsafe_allow_html=True)
+# --- 1. HERO SECTION ---
+st.markdown("""
+    <div class="hero-container">
+        <h1 class="hero-title">PocketDoc AI</h1>
+        <p class="hero-tagline">Advanced multimodal triage powered by Gemini 2.0. Correlate visual markers with patient narrative in real-time.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- MAIN LAYOUT ---
-col_in, col_out = st.columns([1, 1], gap="large")
+# --- 2. MODEL DESCRIPTION SECTION ---
+st.markdown('<div class="feature-section">', unsafe_allow_html=True)
+st.markdown("## 🧠 The Intelligence Engine")
+col_desc1, col_desc2 = st.columns(2)
+with col_desc1:
+    st.write("### Multimodal Input")
+    st.write("- **Visual:** High-fidelity morphology analysis.")
+    st.write("- **Audio:** Natural language symptom processing.")
+    st.write("- **Reasoning:** Cross-modal contextual correlation.")
+with col_desc2:
+    st.write("### Clinical Triage")
+    st.write("- **Urgency Scoring:** High/Medium/Low prioritization.")
+    st.write("- **SOAP Support:** Structured assessment formats.")
+    st.write("- **Research Grade:** Designed for triage prototype analysis.")
+st.markdown('</div>', unsafe_allow_html=True)
 
-with col_in:
-    st.markdown("### 📥 Diagnostic Inputs")
+# --- 3. INTERACTIVE AI SECTION ---
+st.markdown("<h2 style='text-align:center;'>🚀 Experience the Interface</h2>", unsafe_allow_html=True)
+
+with st.container():
+    st.markdown('<div class="feature-section">', unsafe_allow_html=True)
     
-    # 1. Visual Capture
-    st.write("**Step 1: Visual Examination**")
-    img_file = st.camera_input("Capture visible symptoms")
+    # --- Webcam Logic ---
+    st.write("### 📸 Step 1: Visual Feed")
+    cam_on = st.toggle("Enable Triage Camera", value=False)
+    img_file = None
+    if cam_on:
+        img_file = st.camera_input("Position visible symptoms in frame")
+    else:
+        st.info("Webcam is currently disabled. Toggle the switch above to start.")
+
+    st.divider()
+
+    # --- Voice & Text Logic ---
+    st.write("### 💬 Step 2: Symptom Dialogue")
     
-    # 2. Symptom Description
-    st.write("**Step 2: Patient Narrative**")
-    symptoms = st.text_area(
-        "Describe your symptoms (Voice-to-Text):",
-        placeholder="e.g. 'I have a red, itchy patch on my forearm that appeared this morning...'",
-        height=150
+    col_v1, col_v2 = st.columns([1, 2])
+    with col_v1:
+        st.write("Record Symptoms:")
+        audio = mic_recorder(start_prompt="⏺️ Record", stop_prompt="⏹️ Stop", key='recorder')
+    
+    # Logic to handle speech-to-text or manual text
+    symptoms_text = ""
+    if audio:
+        # In a production app, you would send 'audio['bytes']' to a STT API (like OpenAI Whisper or Google STT)
+        # For this prototype, we will assume text input as the fallback or prompt the user.
+        st.success("Audio captured! (Connect STT API here for real-time transcription)")
+    
+    symptoms_text = st.text_area(
+        "Narrative Input:",
+        placeholder="e.g. 'Red circular rash on left arm, itching for 48 hours...'",
+        height=100
     )
 
-with col_out:
-    st.markdown("### 📋 AI Triage Report")
-    
-    if st.button("🚀 Run Multimodal Analysis", type="primary", use_container_width=True):
-        if not img_file or not symptoms:
-            st.warning("Please provide both an image and a symptom description.")
+    # --- ANALYSIS ENGINE ---
+    if st.button("RUN TRIAGE ANALYSIS", use_container_width=True):
+        if not img_file or not symptoms_text:
+            st.warning("Analysis requires both a visual capture and a narrative input.")
         else:
-            with st.spinner("Analyzing hybrid data streams..."):
+            with st.spinner("Executing Inference Chain..."):
                 try:
                     image = Image.open(img_file)
-                    
                     prompt = f"""
-                    SYSTEM: Professional Triage Assistant.
-                    SYMPTOMS: {symptoms}
-                    TASK: Analyze image + text. Provide Triage Category and Next Steps.
-                    DISCLAIMER: This is not a diagnosis.
+                    SYSTEM: Professional Triage Assistant Prototype.
+                    SYMPTOMS: {symptoms_text}
+                    TASK: Analyze visual signs + verbal context. Determine Risk Category and Next Steps.
                     """
-
                     response = client.models.generate_content(
                         model="gemini-2.0-flash",
                         contents=[prompt, image]
                     )
 
+                    # Output Rendering
                     st.markdown(f'<div class="status-card">{response.text}</div>', unsafe_allow_html=True)
-                
+                    
+                    # --- TTS Playback ---
+                    tts = gTTS(text=response.text[:500], lang='en') # Limit TTS length for speed
+                    audio_fp = io.BytesIO()
+                    tts.write_to_fp(audio_fp)
+                    st.audio(audio_fp, format='audio/mp3')
+
                 except exceptions.ResourceExhausted:
-                    st.error("Quota exceeded. Please wait 60s.")
+                    st.error("Quota Exceeded. Please retry in 60s.")
                 except Exception as e:
                     st.error(f"Error: {e}")
-    else:
-        # Placeholder when no analysis has run
-        st.info("Captured data will be analyzed here in real-time.")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- FOOTER ---
-st.markdown("<br><hr>", unsafe_allow_html=True)
+st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
-    <style>
-    .stApp { background-color: #f0f2f6; } /* Light Clinical Grey */
-    [data-testid="column"] {
-        background-color: white !important;
-        padding: 25px !important;
-        border-radius: 15px !important;
-        border: 1px solid #dee2e6 !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-    }
-    .header-text { color: #1a365d; font-family: 'Inter', sans-serif; }
-    </style>
+    <div style="text-align: center; color: #64748B; padding: 40px;">
+        <p>⚠️ <strong>RESEARCH PROTOTYPE ONLY</strong></p>
+        <p>This is a demonstration of AI triage logic. It is not a medical device and does not provide diagnosis.</p>
+        <p>© 2026 PocketDoc AI Labs</p>
+    </div>
     """, unsafe_allow_html=True)
