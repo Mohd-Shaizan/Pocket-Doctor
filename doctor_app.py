@@ -57,7 +57,7 @@ st.markdown("""
 
     /* Unified Section Heading */
     .section-header {
-        font-size: 2.2rem !important;
+        font-size: 3.2rem !important;
         font-weight: 700;
         text-align: center;
         margin-bottom: 30px !important;
