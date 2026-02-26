@@ -177,7 +177,6 @@ st.markdown("""
 st.markdown('<h2 class="section-header">Start Analysis</h2>', unsafe_allow_html=True)
 
 with st.container():
-    st.markdown('<div class="interaction-card">', unsafe_allow_html=True)
 
     # CARD TITLE
     st.markdown("###  Multimodal Input Panel")
