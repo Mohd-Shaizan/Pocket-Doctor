@@ -5,11 +5,22 @@ from google.api_core import exceptions
 from streamlit_mic_recorder import mic_recorder
 from gtts import gTTS
 import io
+import os
+import base64
+from faster_whisper import WhisperModel
 
-# --- PAGE CONFIG ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(page_title="PocketDoc AI", page_icon="🩺", layout="wide")
 
-# --- LANGCHAIN-INSPIRED DARK UI CSS ---
+# --- 2. LOCAL AI MODELS LOADING (STT) ---
+@st.cache_resource
+def load_stt_model():
+    # 'tiny' is best for Streamlit Cloud CPUs
+    return WhisperModel("tiny", device="cpu", compute_type="int8")
+
+stt_model = load_stt_model()
+
+# --- 3. CUSTOM CSS (LangChain / Futuristic Theme) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap');
@@ -19,178 +30,180 @@ st.markdown("""
         color: #e2e8f0 !important;
     }
 
-    /* Hero Section Glow */
+    /* Hero Section */
     .hero-container {
         text-align: center;
-        padding: 100px 20px;
-        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, rgba(5, 5, 5, 1) 70%);
+        padding: 80px 20px;
+        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.08) 0%, rgba(5, 5, 5, 1) 70%);
     }
 
     .hero-title {
         font-family: 'Inter', sans-serif;
-        font-size: 4.5rem !important;
+        font-size: 4rem !important;
         font-weight: 800;
-        background: linear-gradient(to right, #ffffff, #94a3b8);
+        background: linear-gradient(to right, #ffffff, #64748b);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
     }
 
-    .hero-tagline {
-        font-size: 1.4rem;
-        color: #94a3b8;
-        max-width: 800px;
-        margin: 0 auto 30px;
-    }
-
-    /* Section Cards (Bento Style) */
+    /* Bento-Style Sections */
     .feature-section {
-        background: rgba(30, 41, 59, 0.3) !important;
+        background: rgba(15, 23, 42, 0.6) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(12px);
         padding: 40px !important;
         border-radius: 24px !important;
         margin: 20px auto !important;
-        max-width: 1000px;
+        max-width: 900px;
     }
 
-    /* Terminal/Mono styling for output */
+    /* AI Response Card */
     .status-card {
-        background-color: #0f172a !important;
+        background-color: #020617 !important;
         color: #38bdf8 !important;
         font-family: 'JetBrains Mono', monospace;
         padding: 2rem;
         border-radius: 16px;
         border: 1px solid #1e293b;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+        margin-top: 20px;
     }
 
-    /* Buttons */
+    /* Buttons & Toggles */
     .stButton>button {
-        background: #3b82f6 !important;
+        background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
         color: white !important;
         border-radius: 50px !important;
-        padding: 12px 30px !important;
+        padding: 12px 40px !important;
         border: none !important;
         font-weight: 600 !important;
+        width: 100%;
     }
 
-    /* Hide Streamlit components that break the landing page feel */
-    #MainMenu {visibility: hidden;}
+    /* Hide redundant UI */
     footer {visibility: hidden;}
+    header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- API INITIALIZATION ---
+# --- 4. UTILITY FUNCTIONS ---
+def autoplay_audio(text):
+    """Generates speech and injects HTML for automatic playback."""
+    tts = gTTS(text=text[:500], lang='en')
+    audio_fp = io.BytesIO()
+    tts.write_to_fp(audio_fp)
+    b64 = base64.b64encode(audio_fp.getvalue()).decode()
+    md = f"""
+        <audio autoplay="true">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """
+    st.markdown(md, unsafe_allow_html=True)
+
+# --- 5. API INITIALIZATION ---
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=API_KEY)
 except Exception:
-    st.error("Missing API Key in Secrets.")
+    st.error("Missing GEMINI_API_KEY in Streamlit Secrets.")
     st.stop()
 
-# --- 1. HERO SECTION ---
+# --- 6. LANDING PAGE SECTIONS ---
+
+# HERO
 st.markdown("""
     <div class="hero-container">
         <h1 class="hero-title">PocketDoc AI</h1>
-        <p class="hero-tagline">Advanced multimodal triage powered by Gemini 2.0. Correlate visual markers with patient narrative in real-time.</p>
+        <p style="font-size:1.2rem; color:#94a3b8;">Futuristic Multimodal Triage for Modern Clinical Analysis.</p>
     </div>
     """, unsafe_allow_html=True)
 
-# --- 2. MODEL DESCRIPTION SECTION ---
+# EXPLANATION SECTION
 st.markdown('<div class="feature-section">', unsafe_allow_html=True)
-st.markdown("## 🧠 The Intelligence Engine")
-col_desc1, col_desc2 = st.columns(2)
-with col_desc1:
-    st.write("### Multimodal Input")
-    st.write("- **Visual:** High-fidelity morphology analysis.")
-    st.write("- **Audio:** Natural language symptom processing.")
-    st.write("- **Reasoning:** Cross-modal contextual correlation.")
-with col_desc2:
-    st.write("### Clinical Triage")
-    st.write("- **Urgency Scoring:** High/Medium/Low prioritization.")
-    st.write("- **SOAP Support:** Structured assessment formats.")
-    st.write("- **Research Grade:** Designed for triage prototype analysis.")
+st.write("### 🧠 The Intelligence Layer")
+st.write("Our system utilizes a **Chained Multimodal Inference** process:")
+col1, col2, col3 = st.columns(3)
+col1.metric("Vision", "Gemini 2.0")
+col2.metric("Voice", "Faster-Whisper")
+col3.metric("Logic", "Cross-Modal")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 3. INTERACTIVE AI SECTION ---
-st.markdown("<h2 style='text-align:center;'>🚀 Experience the Interface</h2>", unsafe_allow_html=True)
+# INTERACTIVE SECTION
+st.markdown("<h2 style='text-align:center; margin-top:50px;'>🚀 Start Analysis</h2>", unsafe_allow_html=True)
 
 with st.container():
     st.markdown('<div class="feature-section">', unsafe_allow_html=True)
     
-    # --- Webcam Logic ---
-    st.write("### 📸 Step 1: Visual Feed")
-    cam_on = st.toggle("Enable Triage Camera", value=False)
+    # WEBCAM TOGGLE
+    st.write("### 📷 01. Visual Input")
+    cam_on = st.toggle("Activate Clinical Camera", value=False)
     img_file = None
     if cam_on:
-        img_file = st.camera_input("Position visible symptoms in frame")
+        img_file = st.camera_input("Capture symptom morphology")
     else:
-        st.info("Webcam is currently disabled. Toggle the switch above to start.")
+        st.info("Webcam is offline. Toggle above to enable visual scanning.")
 
     st.divider()
 
-    # --- Voice & Text Logic ---
-    st.write("### 💬 Step 2: Symptom Dialogue")
+    # VOICE INPUT
+    st.write("### 💬 02. Voice Narrative")
+    audio = mic_recorder(start_prompt="⏺️ Record Symptoms", stop_prompt="⏹️ Process Voice", key='recorder')
     
-    col_v1, col_v2 = st.columns([1, 2])
-    with col_v1:
-        st.write("Record Symptoms:")
-        audio = mic_recorder(start_prompt="⏺️ Record", stop_prompt="⏹️ Stop", key='recorder')
-    
-    # Logic to handle speech-to-text or manual text
-    symptoms_text = ""
+    # Process voice locally
     if audio:
-        # In a production app, you would send 'audio['bytes']' to a STT API (like OpenAI Whisper or Google STT)
-        # For this prototype, we will assume text input as the fallback or prompt the user.
-        st.success("Audio captured! (Connect STT API here for real-time transcription)")
-    
-    symptoms_text = st.text_area(
-        "Narrative Input:",
-        placeholder="e.g. 'Red circular rash on left arm, itching for 48 hours...'",
+        with st.spinner("🤖 Local STT: Transcribing narrative..."):
+            with open("temp.wav", "wb") as f:
+                f.write(audio['bytes'])
+            segments, _ = stt_model.transcribe("temp.wav")
+            st.session_state.symptoms_text = " ".join([s.text for s in segments])
+            os.remove("temp.wav")
+
+    # Manual edit/view of transcription
+    symptoms_input = st.text_area(
+        "Narrative Transcript:",
+        value=st.session_state.get('symptoms_text', ""),
+        placeholder="Waiting for voice input or manual typing...",
         height=100
     )
 
-    # --- ANALYSIS ENGINE ---
-    if st.button("RUN TRIAGE ANALYSIS", use_container_width=True):
-        if not img_file or not symptoms_text:
-            st.warning("Analysis requires both a visual capture and a narrative input.")
+    st.divider()
+
+    # TRIGGER ANALYSIS
+    if st.button("RUN MULTIMODAL INFERENCE"):
+        if not img_file or not symptoms_input:
+            st.warning("Critical Error: Both Visual and Narrative data streams are required.")
         else:
-            with st.spinner("Executing Inference Chain..."):
+            with st.spinner("Executing Intelligence Chain..."):
                 try:
                     image = Image.open(img_file)
                     prompt = f"""
-                    SYSTEM: Professional Triage Assistant Prototype.
-                    SYMPTOMS: {symptoms_text}
-                    TASK: Analyze visual signs + verbal context. Determine Risk Category and Next Steps.
+                    SYSTEM: Professional Medical Triage Prototype. 
+                    NARRATIVE: {symptoms_input}
+                    TASK: Analyze image + narrative. Provide Triage Category and Clinical Steps.
                     """
                     response = client.models.generate_content(
                         model="gemini-2.0-flash",
                         contents=[prompt, image]
                     )
 
-                    # Output Rendering
+                    # Result Rendering
                     st.markdown(f'<div class="status-card">{response.text}</div>', unsafe_allow_html=True)
                     
-                    # --- TTS Playback ---
-                    tts = gTTS(text=response.text[:500], lang='en') # Limit TTS length for speed
-                    audio_fp = io.BytesIO()
-                    tts.write_to_fp(audio_fp)
-                    st.audio(audio_fp, format='audio/mp3')
+                    # Voice Playback
+                    autoplay_audio(response.text)
 
                 except exceptions.ResourceExhausted:
-                    st.error("Quota Exceeded. Please retry in 60s.")
+                    st.error("API Limit reached. Please wait 60s.")
                 except Exception as e:
-                    st.error(f"Error: {e}")
-    
+                    st.error(f"Inference Error: {e}")
+
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- FOOTER ---
-st.markdown("<br><br>", unsafe_allow_html=True)
+# FOOTER
+st.markdown("<br><br><br>", unsafe_allow_html=True)
 st.markdown("""
-    <div style="text-align: center; color: #64748B; padding: 40px;">
-        <p>⚠️ <strong>RESEARCH PROTOTYPE ONLY</strong></p>
-        <p>This is a demonstration of AI triage logic. It is not a medical device and does not provide diagnosis.</p>
-        <p>© 2026 PocketDoc AI Labs</p>
+    <div style="text-align: center; color: #475569; padding-bottom: 50px;">
+        <p><strong>RESEARCH PROTOTYPE: NOT FOR MEDICAL DIAGNOSIS</strong></p>
+        <p>© 2026 PocketDoc Labs // Multimodal AI Triage</p>
     </div>
     """, unsafe_allow_html=True)
