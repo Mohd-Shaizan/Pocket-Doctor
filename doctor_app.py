@@ -180,7 +180,7 @@ with st.container():
     st.markdown('<div class="interaction-card">', unsafe_allow_html=True)
 
     # CARD TITLE
-    st.markdown("### 🧠 Multimodal Input Panel")
+    st.markdown("###  Multimodal Input Panel")
 
     # --- VISUAL CAPTURE ---
     st.markdown("#### 📸 Visual Capture")
@@ -218,7 +218,7 @@ with st.container():
     st.divider()
 
     # --- TEXT INPUT ---
-    st.markdown("#### ✍️ Clinical Narrative")
+    st.markdown("####  Clinical Narrative")
 
     symptoms_input = st.text_area(
         "Transcript / Additional Details",
