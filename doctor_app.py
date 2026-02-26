@@ -91,7 +91,7 @@ st.markdown("""
     /* About Text - Tighter Integration */
     .about-box {
         text-align: center;
-        max-width: 750px;
+        max-width: 950px;
         margin: 0 auto 50px auto;
         padding: 20px;
         border-radius: 15px;
@@ -166,9 +166,7 @@ st.markdown("""
 st.markdown("""
     <div class="about-box">
         <p class="about-text">
-            PocketDoc AI is a research prototype that synthesizes <b>visual markers, voice narratives, and text data</b> 
-            into a real-time clinical assessment. Designed to demonstrate the power of multimodal AI 
-            in healthcare triage environments.
+            PocketDoc AI is a research prototype that combines images, voice, and text to help analyze health-related information in real time. It demonstrates how multimodal AI can assist in early clinical triage by understanding what a person shows, says, and types. This project is built to explore how different input types can work together to support faster, more intuitive health assessments in a single interface.
         </p>
     </div>
     """, unsafe_allow_html=True)
