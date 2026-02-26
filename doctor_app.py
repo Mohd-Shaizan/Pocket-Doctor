@@ -91,8 +91,8 @@ st.markdown("""
     /* About Text - Tighter Integration */
     .about-box {
         text-align: center;
-        max-width: 950px;
-        font-size:15px;
+        max-width: 1050px;
+        font-size:25px;
         margin: 0 auto 50px auto;
         padding: 20px;
         border-radius: 15px;
