@@ -19,7 +19,7 @@ def load_stt_model():
 
 stt_model = load_stt_model()
 
-# --- 3. REFINED FUTURISTIC CSS (FIXED SPACING) ---
+# --- 3. REFINED FUTURISTIC CSS ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono&display=swap');
@@ -31,96 +31,90 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    /* Hero Styling - Reduced Padding */
+    /* Hero Styling */
     .hero-container {
         text-align: center;
-        padding: 60px 20px 20px 20px;
-        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, rgba(5, 5, 5, 1) 80%);
+        padding: 120px 20px 60px 20px;
+        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.12) 0%, rgba(5, 5, 5, 1) 80%);
     }
 
     .hero-title {
-        font-size: 5rem !important;
+        font-size: 5.5rem !important;
         font-weight: 800;
         letter-spacing: -2px;
-        background: linear-gradient(to right, #ffffff 40%, #3b82f6);
+        background: linear-gradient(to right, #ffffff 30%, #3b82f6);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0px;
     }
 
-    .hero-tagline {
-        font-size: 1.3rem;
-        color: #94a3b8;
-        margin-top: 10px;
-        margin-bottom: 40px;
-    }
-
-    /* Unified Section Heading */
+    /* Section Headings */
     .section-header {
-        font-size: 2.2rem !important;
+        font-size: 2.8rem !important;
         font-weight: 700;
         text-align: center;
-        margin-bottom: 30px !important;
-        color: #ffffff;
+        margin-top: 80px !important;
+        margin-bottom: 40px !important;
+        background: linear-gradient(to right, #ffffff, #64748b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
-    /* The Unified Interaction Cockpit Card */
+    /* Core Interaction Card (Glassmorphism) */
     .interaction-card {
         background: rgba(15, 23, 42, 0.4) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         backdrop-filter: blur(20px);
-        padding: 40px !important;
-        border-radius: 24px !important;
+        padding: 50px !important;
+        border-radius: 32px !important;
         margin: 0 auto !important;
-        max-width: 850px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        max-width: 900px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
 
-    /* About Text - Tighter Integration */
-    .about-box {
-        text-align: center;
-        max-width: 850px;
-        font-size: 1.5rem;
-        margin: 0 auto 50px auto;
-        padding: 20px;
-        border-radius: 15px;
-        background: rgba(255, 255, 255, 0.03);
-    }
-
+    /* About Section Text */
     .about-text {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: #cbd5e1;
+        font-size: 1.15rem;
+        line-height: 1.8;
+        color: #94a3b8;
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto;
     }
 
-    /* Result Card (Output) */
+    /* AI Response Card */
     .status-card {
         background-color: #020617 !important;
         color: #38bdf8 !important;
         font-family: 'JetBrains Mono', monospace;
-        padding: 2rem;
-        border-radius: 16px;
+        padding: 2.5rem;
+        border-radius: 20px;
         border: 1px solid #1e293b;
-        margin-top: 25px;
+        box-shadow: 0 0 40px rgba(56, 189, 248, 0.08);
+        margin-top: 30px;
     }
 
-    /* Unified Button */
+    /* Buttons */
     .stButton>button {
-        background: linear-gradient(90deg, #3b82f6, #1d4ed8) !important;
+        background: #3b82f6 !important;
         color: white !important;
-        border-radius: 10px !important;
-        padding: 18px !important;
-        font-weight: 700 !important;
-        width: 100%;
+        border-radius: 12px !important;
+        padding: 16px 40px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease;
         border: none !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        margin-top: 20px;
+    }
+    
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
     }
 
-    /* Spacing Fixes */
-    .block-container { padding-top: 2rem !important; }
-    footer, header { visibility: hidden; }
-    hr { margin: 2rem 0 !important; opacity: 0.1; }
+    /* Clean Up Streamlit Defaults */
+    div[data-testid="stMetric"] { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; }
+    footer, header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -141,95 +135,95 @@ except:
     st.error("Missing GEMINI_API_KEY")
     st.stop()
 
-# --- 6. PAGE LAYOUT ---
+# --- 6. LANDING PAGE EXPERIENCE ---
 
 # HERO SECTION
 st.markdown("""
     <div class="hero-container">
         <h1 class="hero-title">PocketDoc AI</h1>
-        <p class="hero-tagline">Autonomous Multimodal Clinical Triage</p>
+        <p style="font-size:1.4rem; color:#94a3b8; margin-top:15px;">Clinical Triage, Reimagined.</p>
     </div>
     """, unsafe_allow_html=True)
 
-# ABOUT SECTION (Condensed)
+# ABOUT SECTION (Replacement for Intelligence Layer)
+st.markdown('<h2 class="section-header">Next-Gen Multimodal Triage</h2>', unsafe_allow_html=True)
 st.markdown("""
-    <div class="about-box">
-        <p class="about-text">
-            PocketDoc AI is a research prototype that synthesizes <b>visual markers, voice narratives, and text data</b> 
-            into a real-time clinical assessment. Designed to demonstrate the power of multimodal AI 
-            in healthcare triage environments.
-        </p>
-    </div>
+    <p class="about-text">
+        PocketDoc AI is a high-performance research prototype designed for automated clinical triage. 
+        By synthesizing <b>live visual data, voice narratives, and text inputs</b>, our multimodal engine 
+        provides instantaneous risk assessment. Built for the future of healthcare—designed for 
+        preliminary triage only.
+    </p>
     """, unsafe_allow_html=True)
 
-# UNIFIED INTERACTION CARD
-st.markdown('<h2 class="section-header">Start Analysis</h2>', unsafe_allow_html=True)
+# START ANALYSIS SECTION (Consolidated Interaction Card)
+st.markdown('<h2 class="section-header">System Interface</h2>', unsafe_allow_html=True)
 
 with st.container():
     st.markdown('<div class="interaction-card">', unsafe_allow_html=True)
     
-    # 01. CAMERA
-    st.markdown("#### 📸 1. Visual Capture")
-    cam_on = st.toggle("Enable Triage Camera Feed", value=False)
+    # 01. CAMERA INPUT
+    st.subheader("📸 Visual Capture")
+    cam_on = st.toggle("Initialize Clinical Camera Feed", value=False)
     img_file = None
     if cam_on:
-        img_file = st.camera_input("Scanner Active", label_visibility="collapsed")
+        img_file = st.camera_input("Scanner Active: Position symptoms clearly")
     else:
-        st.info("Webcam offline. Enable to capture visual symptoms.")
+        st.info("Sensor Offline: Toggle the switch above to initialize visual input.")
 
-    st.markdown("<br>", unsafe_allow_html=True)
     st.divider()
-    
-    # 02. VOICE
-    st.markdown("#### 💬 2. Narrative Input")
-    col_audio, col_transcript = st.columns([1, 2])
-    
-    with col_audio:
-        st.write("Voice Recording:")
-        audio = mic_recorder(start_prompt="⏺️ Record", stop_prompt="⏹️ Stop", key='recorder')
+
+    # 02. VOICE NARRATIVE
+    st.subheader("💬 Patient Narrative")
+    col_v1, col_v2 = st.columns([1, 1])
+    with col_v1:
+        st.write("Voice Recording")
+        audio = mic_recorder(start_prompt="⏺️ Begin Recording", stop_prompt="⏹️ End & Process", key='recorder')
     
     if audio:
-        with st.spinner("Decoding audio..."):
+        with st.spinner("Decoding vocal streams..."):
             with open("temp.wav", "wb") as f: f.write(audio['bytes'])
             segments, _ = stt_model.transcribe("temp.wav")
             st.session_state.symptoms_text = " ".join([s.text for s in segments])
             os.remove("temp.wav")
 
-    # 03. TEXT (Combined with Voice result)
+    # 03. TEXT INPUT
     symptoms_input = st.text_area(
-        "Transcript / Additional Details",
+        "Vocal Transcript / Manual Entry",
         value=st.session_state.get('symptoms_text', ""),
-        placeholder="Voice transcript will appear here, or type manually...",
-        height=100,
-        label_visibility="collapsed"
+        placeholder="Narrative will appear here, or type manually...",
+        height=120
     )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.divider()
 
-    # 04. ACTION BUTTON
-    if st.button("Run Multimodal Inference"):
+    # 04. EXECUTION
+    if st.button("RUN MULTIMODAL INFERENCE"):
         if not img_file or not symptoms_input:
-            st.warning("Data Incomplete: Image and Narrative are required.")
+            st.warning("Incomplete Data: Please provide both visual capture and patient narrative.")
         else:
-            with st.spinner("Running Neural Inference Chain..."):
+            with st.spinner("Processing Intelligence Chain..."):
                 try:
                     image = Image.open(img_file)
-                    prompt = f"Professional Triage. Narrative: {symptoms_input}."
+                    prompt = f"SYSTEM: Professional Triage. NARRATIVE: {symptoms_input}. TASK: Analyze and provide Triage Category + Steps."
                     response = client.models.generate_content(model="gemini-2.5-flash", contents=[prompt, image])
                     
+                    # Rendering Output within the flow
                     st.markdown(f'<div class="status-card">{response.text}</div>', unsafe_allow_html=True)
                     autoplay_audio(response.text)
+
                 except exceptions.ResourceExhausted:
-                    st.error("API Limit Reached.")
+                    st.error("API Rate Limit Reached.")
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"Execution Error: {e}")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
 # FOOTER
+st.markdown("<br><br><br>", unsafe_allow_html=True)
 st.markdown("""
-    <div style="text-align: center; color: #475569; padding: 60px 0;">
-        <p style="font-weight:600; font-size: 0.9rem;">RESEARCH PROTOTYPE // NON-DIAGNOSTIC</p>
-        <p style="font-size:0.75rem; opacity: 0.5;">© 2026 PocketDoc Labs</p>
+    <div style="text-align: center; color: #475569; padding-bottom: 80px; border-top: 1px solid rgba(255,255,255,0.05); padding-top:40px;">
+        <p style="letter-spacing:1px; font-weight:600; color:#64748b;">RESEARCH PROTOTYPE // NON-DIAGNOSTIC</p>
+        <p style="font-size:0.8rem;">© 2026 PocketDoc Labs. All rights reserved.</p>
     </div>
     """, unsafe_allow_html=True)
