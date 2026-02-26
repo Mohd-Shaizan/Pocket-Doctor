@@ -66,15 +66,27 @@ st.markdown("""
 
     /* The Unified Interaction Cockpit Card */
     .interaction-card {
-        background: rgba(15, 23, 42, 0.4) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(20px);
-        padding: 40px !important;
-        border-radius: 24px !important;
-        margin: 0 auto !important;
-        max-width: 850px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    }
+    background: linear-gradient(
+        180deg,
+        rgba(15, 23, 42, 0.65),
+        rgba(2, 6, 23, 0.75)
+    ) !important;
+
+    border-radius: 28px !important;
+    padding: 48px 44px !important;
+    max-width: 880px;
+    margin: 0 auto 80px auto !important;
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow:
+        0 0 0 1px rgba(59,130,246,0.15),
+        0 30px 80px rgba(0,0,0,0.75);
+
+    position: relative;
+}
 
     /* About Text - Tighter Integration */
     .about-box {
@@ -166,47 +178,62 @@ st.markdown('<h2 class="section-header">Start Analysis</h2>', unsafe_allow_html=
 
 with st.container():
     st.markdown('<div class="interaction-card">', unsafe_allow_html=True)
-    
-    # 01. CAMERA
-    st.markdown("#### 📸 1. Visual Capture")
+
+    # CARD TITLE
+    st.markdown("### 🧠 Multimodal Input Panel")
+
+    # --- VISUAL CAPTURE ---
+    st.markdown("#### 📸 Visual Capture")
     cam_on = st.toggle("Enable Triage Camera Feed", value=False)
+
     img_file = None
     if cam_on:
-        img_file = st.camera_input("Scanner Active", label_visibility="collapsed")
+        img_file = st.camera_input(
+            "Camera Active",
+            label_visibility="collapsed"
+        )
+        st.success("Webcam online. Capture when ready.")
     else:
         st.info("Webcam offline. Enable to capture visual symptoms.")
 
-    st.markdown("<br>", unsafe_allow_html=True)
     st.divider()
-    
-    # 02. VOICE
-    st.markdown("#### 💬 2. Narrative Input")
-    col_audio, col_transcript = st.columns([1, 2])
-    
-    with col_audio:
-        st.write("Voice Recording:")
-        audio = mic_recorder(start_prompt="⏺️ Record", stop_prompt="⏹️ Stop", key='recorder')
-    
+
+    # --- VOICE INPUT ---
+    st.markdown("#### 🎙️ Voice Narrative")
+
+    audio = mic_recorder(
+        start_prompt="⏺️ Start Recording",
+        stop_prompt="⏹️ Stop Recording",
+        key="recorder"
+    )
+
     if audio:
-        with st.spinner("Decoding audio..."):
-            with open("temp.wav", "wb") as f: f.write(audio['bytes'])
+        with st.spinner("Transcribing voice input..."):
+            with open("temp.wav", "wb") as f:
+                f.write(audio["bytes"])
             segments, _ = stt_model.transcribe("temp.wav")
-            st.session_state.symptoms_text = " ".join([s.text for s in segments])
+            st.session_state.symptoms_text = " ".join(s.text for s in segments)
             os.remove("temp.wav")
 
-    # 03. TEXT (Combined with Voice result)
+    st.divider()
+
+    # --- TEXT INPUT ---
+    st.markdown("#### ✍️ Clinical Narrative")
+
     symptoms_input = st.text_area(
         "Transcript / Additional Details",
-        value=st.session_state.get('symptoms_text', ""),
-        placeholder="Voice transcript will appear here, or type manually...",
-        height=100,
+        value=st.session_state.get("symptoms_text", ""),
+        placeholder="Voice transcript appears here. You may edit or add details...",
+        height=140,
         label_visibility="collapsed"
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # 04. ACTION BUTTON
-    if st.button("Run Multimodal Inference"):
+    # --- RUN BUTTON ---
+    run = st.button("Run Multimodal Inference")
+
+    if run:
         if not img_file or not symptoms_input:
             st.warning("Data Incomplete: Image and Narrative are required.")
         else:
@@ -214,10 +241,17 @@ with st.container():
                 try:
                     image = Image.open(img_file)
                     prompt = f"Professional Triage. Narrative: {symptoms_input}."
-                    response = client.models.generate_content(model="gemini-2.5-flash", contents=[prompt, image])
-                    
-                    st.markdown(f'<div class="status-card">{response.text}</div>', unsafe_allow_html=True)
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=[prompt, image]
+                    )
+
+                    st.markdown(
+                        f'<div class="status-card">{response.text}</div>',
+                        unsafe_allow_html=True
+                    )
                     autoplay_audio(response.text)
+
                 except exceptions.ResourceExhausted:
                     st.error("API Limit Reached.")
                 except Exception as e:
