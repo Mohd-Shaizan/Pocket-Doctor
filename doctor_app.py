@@ -137,7 +137,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 4. UTILITY FUNCTIONS ---
-def autoplay_audio(text):
+def autoplay_audio(text,speed=1.8):
     tts = gTTS(text=text[:500], lang='en')
     audio_fp = io.BytesIO()
     tts.write_to_fp(audio_fp)
@@ -261,6 +261,6 @@ with st.container():
 st.markdown("""
     <div style="text-align: center; color: #475569; padding: 60px 0;">
         <p style="font-weight:600; font-size: 0.9rem;">RESEARCH PROTOTYPE // NON-DIAGNOSTIC</p>
-        <p style="font-size:0.75rem; opacity: 0.5;">© 2026 PocketDoc Labs</p>
+        <p style="font-size:0.75rem; opacity: 0.5;">© 2026 Better Mind Labs</p>
     </div>
     """, unsafe_allow_html=True)
