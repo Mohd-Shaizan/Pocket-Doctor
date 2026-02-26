@@ -123,8 +123,15 @@ with col_out:
 # --- FOOTER ---
 st.markdown("<br><hr>", unsafe_allow_html=True)
 st.markdown("""
-    <div style='text-align: center; color: #64748B; font-size: 0.8rem;'>
-        <strong>RESEARCH PROTOTYPE ONLY</strong><br>
-        Not for medical use. In case of emergency, call 911 immediately.
-    </div>
+    <style>
+    .stApp { background-color: #f0f2f6; } /* Light Clinical Grey */
+    [data-testid="column"] {
+        background-color: white !important;
+        padding: 25px !important;
+        border-radius: 15px !important;
+        border: 1px solid #dee2e6 !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+    }
+    .header-text { color: #1a365d; font-family: 'Inter', sans-serif; }
+    </style>
     """, unsafe_allow_html=True)
