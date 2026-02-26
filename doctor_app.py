@@ -1,87 +1,58 @@
 import streamlit as st
 from PIL import Image
 from google import genai
-from google.genai import types
+from google.api_core import exceptions
 
-# --- PAGE CONFIGURATION ---
-st.set_page_config(
-    page_title="Doctor in Your Pocket | AI Triage",
-    page_icon="🩺",
-    layout="wide"
-)
+# --- PAGE CONFIG ---
+st.set_page_config(page_title="PocketDoc AI", page_icon="🩺", layout="wide")
 
-# --- ADVANCED CLINICAL UI STYLING (Dr.AI Inspired) ---
+# --- HIGH-VISIBILITY CLINICAL CSS ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
-
+    /* Force the background color on the main app area */
     .stApp {
-        background-color: #F0F4F8;
+        background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%) !important;
     }
 
-    /* Professional Sidebar */
-    section[data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 1px solid #E2E8F0;
+    /* Professional Card Styling with forced white background */
+    [data-testid="stVerticalBlock"] > div > div > div[data-testid="column"] {
+        background-color: white !important;
+        padding: 2rem !important;
+        border-radius: 20px !important;
+        border: 1px solid #d1d5db !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
     }
 
-    /* Glassmorphism Input Cards */
-    div[data-testid="column"] {
-        background: white;
-        padding: 2rem;
-        border-radius: 20px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Result Box Styling */
-    .status-card {
-        background-color: #FFFFFF;
-        color: #1E293B;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #E2E8F0;
-        border-left: 6px solid #3B82F6;
-        line-height: 1.6;
-    }
-
-    /* Header styling */
-    .header-container {
+    /* Custom Header */
+    .main-header {
         text-align: center;
-        padding: 2rem 0;
+        color: #1e3a8a;
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
     }
     
-    .header-text { 
-        color: #0F172A; 
-        font-size: 2.5rem !important;
-        font-weight: 800;
-        margin-bottom: 0px;
-    }
-
-    .subtitle-text {
-        color: #64748B;
-        font-size: 1.1rem;
+    .sub-header {
+        text-align: center;
+        color: #475569;
+        font-size: 1.2rem;
         margin-bottom: 2rem;
     }
 
-    /* Buttons */
-    .stButton>button {
-        background-color: #3B82F6 !important;
-        color: white !important;
-        border-radius: 10px !important;
-        border: none !important;
-        padding: 0.75rem 2rem !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease;
+    /* Result Card */
+    .status-card {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 8px solid #3b82f6;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
     }
 
-    .stButton>button:hover {
-        background-color: #2563EB !important;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    /* Adjusting the Camera Input spacing */
+    div[data-testid="stCameraInput"] {
+        padding: 1rem 0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -91,89 +62,69 @@ try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=API_KEY)
 except Exception:
-    st.error("API Key not found. Please configure GEMINI_API_KEY in Streamlit Secrets.")
+    st.error("Missing API Key in Secrets.")
     st.stop()
 
-# --- HEADER SECTION ---
-st.markdown("""
-    <div class="header-container">
-        <h1 class='header-text'>🩺 PocketDoc AI</h1>
-        <p class='subtitle-text'>Next-Generation Multimodal Triage Assistant</p>
-    </div>
-    """, unsafe_allow_html=True)
+# --- HEADER ---
+st.markdown("<h1 class='main-header'>🩺 PocketDoc AI</h1>", unsafe_allow_html=True)
+st.markdown("<p class='sub-header'>Research Prototype: Multimodal Clinical Triage</p>", unsafe_allow_html=True)
 
-# --- MAIN INTERFACE LAYOUT ---
-col_input, col_output = st.columns([1, 1], gap="large")
+# --- MAIN LAYOUT ---
+col_in, col_out = st.columns([1, 1], gap="large")
 
-with col_input:
-    st.markdown("### 📥 Diagnostics Input")
+with col_in:
+    st.markdown("### 📥 Diagnostic Inputs")
     
-    # Visual Input with a cleaner container
-    st.write("**Visual Examination**")
-    img_file = st.camera_input("Position camera over visible symptoms")
+    # 1. Visual Capture
+    st.write("**Step 1: Visual Examination**")
+    img_file = st.camera_input("Capture visible symptoms")
     
-    st.divider()
-    
-    # Voice/Text Input with more professional labeling
-    st.write("**Patient History & Symptoms**")
+    # 2. Symptom Description
+    st.write("**Step 2: Patient Narrative**")
     symptoms = st.text_area(
-        label="Voice Input (Transcribed)",
-        placeholder="Describe onset, duration, and sensation (e.g., 'Burning sensation on arm for 2 hours...')",
-        height=180,
-        label_visibility="collapsed"
+        "Describe your symptoms (Voice-to-Text):",
+        placeholder="e.g. 'I have a red, itchy patch on my forearm that appeared this morning...'",
+        height=150
     )
 
-with col_output:
-    st.markdown("### 📋 Clinical Summary")
+with col_out:
+    st.markdown("### 📋 AI Triage Report")
     
-    if st.button("Generate AI Triage Report", type="primary", use_container_width=True):
+    if st.button("🚀 Run Multimodal Analysis", type="primary", use_container_width=True):
         if not img_file or not symptoms:
-            st.warning("⚠️ Multimodal context incomplete. Please provide both image and description.")
+            st.warning("Please provide both an image and a symptom description.")
         else:
-            with st.spinner("Analyzing data streams..."):
+            with st.spinner("Analyzing hybrid data streams..."):
                 try:
                     image = Image.open(img_file)
                     
                     prompt = f"""
-                    SYSTEM: You are a professional medical triage assistant prototype. 
-                    USER SYMPTOMS: {symptoms}
-                    
-                    TASK:
-                    1. Analyze the visual characteristics in the provided image.
-                    2. Correlate visual findings with the user's verbal description.
-                    3. Provide a structured triage report including:
-                       - Visual Morphology (color, shape, borders)
-                       - Correlated Assessment
-                       - Triage Category (Emergent, Urgent, or Non-Urgent)
-                       - Suggested next steps for the user.
-                    
-                    DISCLAIMER: Start with a bold disclaimer that this is a research prototype and not a diagnosis.
+                    SYSTEM: Professional Triage Assistant.
+                    SYMPTOMS: {symptoms}
+                    TASK: Analyze image + text. Provide Triage Category and Next Steps.
+                    DISCLAIMER: This is not a diagnosis.
                     """
 
-                    # Using the version of flash you specified in your working code
                     response = client.models.generate_content(
-                        model="gemini-2.0-flash", 
+                        model="gemini-2.0-flash",
                         contents=[prompt, image]
                     )
 
                     st.markdown(f'<div class="status-card">{response.text}</div>', unsafe_allow_html=True)
                 
+                except exceptions.ResourceExhausted:
+                    st.error("Quota exceeded. Please wait 60s.")
                 except Exception as e:
-                    st.error(f"Analysis failed: {str(e)}")
+                    st.error(f"Error: {e}")
     else:
-        st.markdown("""
-            <div style="text-align: center; padding: 4rem 2rem; color: #94A3B8; border: 2px dashed #E2E8F0; border-radius: 15px;">
-                <p>Awaiting multimodal input capture...</p>
-            </div>
-            """, unsafe_allow_html=True)
+        # Placeholder when no analysis has run
+        st.info("Captured data will be analyzed here in real-time.")
 
 # --- FOOTER ---
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.divider()
+st.markdown("<br><hr>", unsafe_allow_html=True)
 st.markdown("""
-    <div style="text-align: center; color: #64748B;">
-        <p><strong>⚠️ RESEARCH PROTOTYPE ONLY</strong></p>
-        <p style="font-size: 0.85rem;">This application demonstrates AI-assisted triage capabilities. It does not provide medical diagnoses. <br> 
-        In case of emergency, contact local emergency services immediately.</p>
+    <div style='text-align: center; color: #64748B; font-size: 0.8rem;'>
+        <strong>RESEARCH PROTOTYPE ONLY</strong><br>
+        Not for medical use. In case of emergency, call 911 immediately.
     </div>
     """, unsafe_allow_html=True)
