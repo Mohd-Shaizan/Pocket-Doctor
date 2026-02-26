@@ -5,28 +5,88 @@ from google.genai import types
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Doctor in Your Pocket | Research Prototype",
+    page_title="Doctor in Your Pocket | AI Triage",
     page_icon="🩺",
     layout="wide"
 )
 
-# Custom CSS for a professional "Clinical" interface
+# --- ADVANCED CLINICAL UI STYLING (Dr.AI Inspired) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #f8f9fa; }
-    .status-card {
-        background-color: grey;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        border-left: 5px solid #007bff;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
-    .header-text { color: #1e3a8a; font-weight: 700; }
+
+    .stApp {
+        background-color: #F0F4F8;
+    }
+
+    /* Professional Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E2E8F0;
+    }
+
+    /* Glassmorphism Input Cards */
+    div[data-testid="column"] {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Result Box Styling */
+    .status-card {
+        background-color: #FFFFFF;
+        color: #1E293B;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        border-left: 6px solid #3B82F6;
+        line-height: 1.6;
+    }
+
+    /* Header styling */
+    .header-container {
+        text-align: center;
+        padding: 2rem 0;
+    }
+    
+    .header-text { 
+        color: #0F172A; 
+        font-size: 2.5rem !important;
+        font-weight: 800;
+        margin-bottom: 0px;
+    }
+
+    .subtitle-text {
+        color: #64748B;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Buttons */
+    .stButton>button {
+        background-color: #3B82F6 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        border: none !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease;
+    }
+
+    .stButton>button:hover {
+        background-color: #2563EB !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- API INITIALIZATION ---
-# Accessing the masked API Key from Streamlit Secrets
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
     client = genai.Client(api_key=API_KEY)
@@ -34,42 +94,46 @@ except Exception:
     st.error("API Key not found. Please configure GEMINI_API_KEY in Streamlit Secrets.")
     st.stop()
 
-# --- APP UI ---
-st.markdown("<h1 class='header-text'>🩺 Doctor in Your Pocket</h1>", unsafe_allow_html=True)
-st.write("### Hybrid Multimodal Triage Assistant")
-st.info("🧬 **Serious Angle:** This demo shows how AI correlates verbal symptoms with visual markers for faster clinical triage.")
+# --- HEADER SECTION ---
+st.markdown("""
+    <div class="header-container">
+        <h1 class='header-text'>🩺 PocketDoc AI</h1>
+        <p class='subtitle-text'>Next-Generation Multimodal Triage Assistant</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Create the Split-Screen Layout
-col_input, col_output = st.columns([1, 1], gap="medium")
+# --- MAIN INTERFACE LAYOUT ---
+col_input, col_output = st.columns([1, 1], gap="large")
 
 with col_input:
-    st.subheader("📥 Input Modalities")
+    st.markdown("### 📥 Diagnostics Input")
     
-    # Visual Input
-    with st.expander("📷 Camera / Image Input", expanded=True):
-        img_file = st.camera_input("Capture visible symptoms (e.g., skin changes, throat, swelling)")
+    # Visual Input with a cleaner container
+    st.write("**Visual Examination**")
+    img_file = st.camera_input("Position camera over visible symptoms")
     
-    # Voice/Text Input
-    with st.expander("💬 Symptom Description", expanded=True):
-        symptoms = st.text_area(
-            "Describe how you feel:",
-            placeholder="e.g., 'I have a burning sensation on my forearm that started 3 hours ago. It's itchy and spreading.'",
-            height=150
-        )
+    st.divider()
+    
+    # Voice/Text Input with more professional labeling
+    st.write("**Patient History & Symptoms**")
+    symptoms = st.text_area(
+        label="Voice Input (Transcribed)",
+        placeholder="Describe onset, duration, and sensation (e.g., 'Burning sensation on arm for 2 hours...')",
+        height=180,
+        label_visibility="collapsed"
+    )
 
 with col_output:
-    st.subheader("📋 AI Triage Summary")
+    st.markdown("### 📋 Clinical Summary")
     
-    if st.button("Analyze Hybrid Context", type="primary", use_container_width=True):
+    if st.button("Generate AI Triage Report", type="primary", use_container_width=True):
         if not img_file or not symptoms:
-            st.warning("Please provide both an image and a description for accurate triage.")
+            st.warning("⚠️ Multimodal context incomplete. Please provide both image and description.")
         else:
-            with st.spinner("Processing multimodal data..."):
+            with st.spinner("Analyzing data streams..."):
                 try:
-                    # Convert uploaded file to PIL Image
                     image = Image.open(img_file)
                     
-                    # Construct the multimodal prompt
                     prompt = f"""
                     SYSTEM: You are a professional medical triage assistant prototype. 
                     USER SYMPTOMS: {symptoms}
@@ -86,9 +150,9 @@ with col_output:
                     DISCLAIMER: Start with a bold disclaimer that this is a research prototype and not a diagnosis.
                     """
 
-                    # Gemini 2.0 Flash is optimized for fast multimodal reasoning
+                    # Using the version of flash you specified in your working code
                     response = client.models.generate_content(
-                        model="gemini-2.5-flash",
+                        model="gemini-2.0-flash", 
                         contents=[prompt, image]
                     )
 
@@ -97,8 +161,19 @@ with col_output:
                 except Exception as e:
                     st.error(f"Analysis failed: {str(e)}")
     else:
-        st.write("Submit data on the left to generate the triage summary.")
+        st.markdown("""
+            <div style="text-align: center; padding: 4rem 2rem; color: #94A3B8; border: 2px dashed #E2E8F0; border-radius: 15px;">
+                <p>Awaiting multimodal input capture...</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 # --- FOOTER ---
+st.markdown("<br><br>", unsafe_allow_html=True)
 st.divider()
-st.caption("⚠️ **Research Prototype Only:** This system is for demonstration purposes. It does not provide medical advice. In an emergency, call 911 or your local emergency number.")
+st.markdown("""
+    <div style="text-align: center; color: #64748B;">
+        <p><strong>⚠️ RESEARCH PROTOTYPE ONLY</strong></p>
+        <p style="font-size: 0.85rem;">This application demonstrates AI-assisted triage capabilities. It does not provide medical diagnoses. <br> 
+        In case of emergency, contact local emergency services immediately.</p>
+    </div>
+    """, unsafe_allow_html=True)
